@@ -102,7 +102,7 @@ footer b{color:#b7c8cf}
 .panel::-webkit-scrollbar-thumb{background:#2c414c;border-radius:6px;border:2px solid transparent;background-clip:padding-box}
 .panel::-webkit-scrollbar-thumb:hover{background:#3a5563;border:2px solid transparent;background-clip:padding-box}
 @media(max-width:1100px){main{grid-template-columns:230px 1fr}.info{display:none}}
-@media(max-width:760px){body{overflow:auto}.app{height:auto;min-height:100vh}header{flex-wrap:wrap}.stat{display:none}main{grid-template-columns:1fr}.map{height:62vh!important;order:1}.left{order:2;max-height:420px}footer{display:block}}
+@media(max-width:760px){body{overflow:auto}.app{height:auto;min-height:100dvh}header{flex-wrap:wrap}.stat{display:none}main{grid-template-columns:1fr}#map{height:60dvh!important;min-height:420px;order:1}.left{order:2;max-height:none}footer{display:block}}
 </style>
 </head>
 <body>
@@ -187,6 +187,7 @@ const baseLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/service
 const map=L.map('map',{zoomControl:false,minZoom:6,maxZoom:18,preferCanvas:true});
 L.control.zoom({position:'bottomright'}).addTo(map);L.control.scale({position:'bottomright',imperial:false,metric:true}).addTo(map);
 map.fitBounds(L.latLngBounds(BOUNDS),{padding:[12,12]});baseLayer.addTo(map);
+function refreshMobileMap(){if(window.innerWidth<=760){setTimeout(()=>{map.invalidateSize();map.fitBounds(L.latLngBounds(BOUNDS),{padding:[16,16]});},100);}}
 const P={};[['route',370],['mask',380],['area',390],['gridPane',395],['boundary',400],['rail',420],['name',425],['point',450]].forEach(([n,z])=>{P[n]=map.createPane(n);P[n].style.zIndex=z;});P.overlayTile=map.createPane('overlayTile');P.overlayTile.style.zIndex=210;
 /* ============ 图层组与状态 ============ */
 const groups={},state={};LAYER_DEFS.forEach(([k,c,n,on])=>{groups[k]=L.layerGroup();state[k]=on;});
@@ -274,5 +275,7 @@ function refreshUI(){const on=LAYER_DEFS.filter(([k])=>state[k]).map(([k])=>k);d
 map.on('mousemove',e=>{document.getElementById('coords').textContent=e.latlng.lng.toFixed(4)+'°E，'+e.latlng.lat.toFixed(4)+'°N';});
 ['district','districtName','transport'].forEach(k=>apply(k,true));
 refreshUI();
+refreshMobileMap();
+window.addEventListener('orientationchange',()=>{setTimeout(refreshMobileMap,200);});
 </script>
 </body></html>
