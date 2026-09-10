@@ -85,7 +85,7 @@ footer{padding:9px 22px;background:linear-gradient(0deg,#132129,#14232c);border-
 footer b{color:#b7c8cf}
 .dist-label{background:transparent;border:0;color:#2b4d5c;font-size:11px;font-weight:bold;text-shadow:0 0 3px #fff,0 0 3px #fff;box-shadow:none}
 .dist-label:before{display:none}
-.grid-label{background:transparent;border:0;color:#8a99a0;font-size:9.5px;box-shadow:none;white-space:nowrap}
+.grid-label{background:transparent;border:0;color:#355868;font-size:10.5px;font-weight:600;text-shadow:0 0 3px #fff,0 0 3px #fff;box-shadow:none;white-space:nowrap}
 .grid-label:before{display:none}
 .poi-label{background:#fffffff0;border:0;border-radius:10px;padding:0 5px;font-size:10px;color:#2c4651;box-shadow:0 1px 4px #12232c22}
 .poi-label:before{display:none}
@@ -188,14 +188,14 @@ const map=L.map('map',{zoomControl:false,minZoom:6,maxZoom:18,preferCanvas:true}
 L.control.zoom({position:'bottomright'}).addTo(map);L.control.scale({position:'bottomright',imperial:false,metric:true}).addTo(map);
 map.fitBounds(L.latLngBounds(BOUNDS),{padding:[12,12]});baseLayer.addTo(map);
 function refreshMobileMap(){if(window.innerWidth<=760){setTimeout(()=>{map.invalidateSize();map.fitBounds(L.latLngBounds(BOUNDS),{padding:[16,16]});},100);}}
-const P={};[['route',370],['mask',380],['area',390],['gridPane',395],['boundary',400],['rail',420],['name',425],['point',450]].forEach(([n,z])=>{P[n]=map.createPane(n);P[n].style.zIndex=z;});P.overlayTile=map.createPane('overlayTile');P.overlayTile.style.zIndex=210;
+const P={};[['route',370],['mask',380],['area',390],['boundary',400],['gridPane',405],['rail',420],['name',425],['point',450]].forEach(([n,z])=>{P[n]=map.createPane(n);P[n].style.zIndex=z;});P.overlayTile=map.createPane('overlayTile');P.overlayTile.style.zIndex=210;
 /* ============ 图层组与状态 ============ */
 const groups={},state={};LAYER_DEFS.forEach(([k,c,n,on])=>{groups[k]=L.layerGroup();state[k]=on;});
 const catLayers=c=>LAYER_DEFS.filter(d=>d[1]===c).map(d=>d[0]);
 const LNAME=k=>LAYER_DEFS.find(d=>d[0]===k)[2];
 function apply(k,on){state[k]=on;if(on)groups[k].addTo(map);else map.removeLayer(groups[k]);}
 /* ============ 行政区划 + 区县名称 + 遮罩 ============ */
-fetch('https://geo.datav.aliyun.com/areas_v3/bound/500000_full.json',{referrerPolicy:'no-referrer'}).then(r=>r.json()).then(d=>{const geo=L.geoJSON(d,{pane:'boundary',style:{color:'#3f9ac0',weight:1.4,opacity:.95,fillColor:'#3f8fb0',fillOpacity:.09},onEachFeature:(f,l)=>{const nm=(f.properties||{}).name||'';l.bindTooltip(nm,{direction:'center',className:'poi-label'}).bindPopup('<strong>'+nm+'</strong><br>重庆市行政区划边界');}}).addTo(groups.district);geo.eachLayer(l=>{const p=l.feature.properties||{};let c=p.centroid||p.center,lat,lng;if(c){const a=Array.isArray(c)?c:String(c).split(',').map(Number);lng=a[0];lat=a[1];}else{const b=l.getBounds();lat=(b.getNorth()+b.getSouth())/2;lng=(b.getEast()+b.getWest())/2;}if(lat==null||lng==null)return;L.marker([lat,lng],{pane:'name',interactive:false,icon:L.divIcon({className:'dist-label',html:p.name||'',iconSize:[64,18],iconAnchor:[32,9]})}).addTo(groups.districtName);});refreshUI();}).catch(err=>console.error('行政区划加载失败:',err));
+fetch('https://geo.datav.aliyun.com/areas_v3/bound/500000_full.json',{referrerPolicy:'no-referrer'}).then(r=>r.json()).then(d=>{const geo=L.geoJSON(d,{pane:'boundary',style:{color:'#3f9ac0',weight:1.4,opacity:.95,fillColor:'#315f73',fillOpacity:.14},onEachFeature:(f,l)=>{const nm=(f.properties||{}).name||'';l.bindTooltip(nm,{direction:'center',className:'poi-label'}).bindPopup('<strong>'+nm+'</strong><br>重庆市行政区划边界');}}).addTo(groups.district);geo.eachLayer(l=>{const p=l.feature.properties||{};let c=p.centroid||p.center,lat,lng;if(c){const a=Array.isArray(c)?c:String(c).split(',').map(Number);lng=a[0];lat=a[1];}else{const b=l.getBounds();lat=(b.getNorth()+b.getSouth())/2;lng=(b.getEast()+b.getWest())/2;}if(lat==null||lng==null)return;L.marker([lat,lng],{pane:'name',interactive:false,icon:L.divIcon({className:'dist-label',html:p.name||'',iconSize:[64,18],iconAnchor:[32,9]})}).addTo(groups.districtName);});refreshUI();}).catch(err=>console.error('行政区划加载失败:',err));
 fetch('https://geo.datav.aliyun.com/areas_v3/bound/500000.json',{referrerPolicy:'no-referrer'}).then(r=>r.json()).then(d=>{const feat=d.features&&d.features[0];if(!feat)return;const geom=feat.geometry;const holes=[];const collect=poly=>poly.forEach(ring=>holes.push(ring.map(c=>[c[1],c[0]])));if(geom.type==='Polygon')collect(geom.coordinates);else if(geom.type==='MultiPolygon')geom.coordinates.forEach(collect);const outerRing=[[85,-180],[-85,-180],[-85,180],[85,180]];L.polygon([outerRing,...holes],{pane:'mask',color:'none',stroke:false,fillColor:'#12232c',fillOpacity:.5,interactive:false}).addTo(map);}).catch(err=>console.error('重庆边界加载失败:',err));
 /* ============ 交通河流 + 地势（天地图标准地图） ============ */
 L.tileLayer(tdtURL('vec'),{subdomains:'01234567',maxZoom:18,pane:'overlayTile',attribution:'天地图'}).addTo(groups.transport);
@@ -203,7 +203,7 @@ L.tileLayer(tdtURL('cva'),{subdomains:'01234567',maxZoom:18,pane:'overlayTile'})
 L.tileLayer(tdtURL('ter'),{subdomains:'01234567',maxZoom:18,pane:'overlayTile',attribution:'天地图'}).addTo(groups.relief);
 L.tileLayer(tdtURL('cta'),{subdomains:'01234567',maxZoom:18,pane:'overlayTile'}).addTo(groups.relief);
 /* ============ 经纬网 + 高山高程点 ============ */
-const gs={color:'#4a5c66',weight:.8,opacity:.62,dashArray:'3 6'};
+const gs={color:'#426879',weight:1.05,opacity:.82,dashArray:'4 5'};
 for(let lon=105.5;lon<=110;lon+=.5)L.polyline([[28.08,lon],[32.24,lon]],Object.assign({},gs,{pane:'gridPane',interactive:false})).addTo(groups.grid);
 for(let lat=28.5;lat<=32;lat+=.5)L.polyline([[lat,105.28],[lat,110.22]],Object.assign({},gs,{pane:'gridPane',interactive:false})).addTo(groups.grid);
 for(let lon=105.5;lon<=110;lon+=.5){if(Math.abs(lon-Math.round(lon))>.01)continue;L.marker([32.24,lon],{pane:'gridPane',interactive:false,icon:L.divIcon({className:'grid-label',html:lon+'°E',iconSize:[36,14],iconAnchor:[18,0]})}).addTo(groups.grid);}
