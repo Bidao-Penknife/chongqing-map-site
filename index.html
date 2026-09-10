@@ -259,7 +259,7 @@ Object.keys(CATS).forEach(cat=>{
 });
 document.getElementById('eraSlider').addEventListener('input',e=>setEra(+e.target.value));
 /* ============ 交互 ============ */
-function toggle(k){const on=!state[k];apply(k,on);if(on&&TDT_POI[k])loadTDT(k);refreshUI();}
+function toggle(k){const on=!state[k];apply(k,on);if(on&&k==='satellite')refreshSat();if(on&&TDT_POI[k])loadTDT(k);refreshUI();}
 function select(k){document.querySelectorAll('.layer-row').forEach(r=>r.classList.toggle('selected',r.dataset.layer===k));renderInfo(k);}
 document.getElementById('groups').addEventListener('click',e=>{const sw=e.target.closest('.switch');const row=e.target.closest('.layer-row');if(!row)return;const k=row.dataset.layer;if(sw){toggle(k);}else{select(k);}});
 function renderInfo(k){const inf=INFO[k],cat=LAYER_DEFS.find(d=>d[0]===k)[1];const body=document.getElementById('infoBody');if(!inf){body.innerHTML='<div class="empty"><span class="big">请选择左侧图层</span>点击左侧图层，查看该测绘方向如何丰富重庆地图。</div>';return;}let leg=inf.legend.map(l=>'<div><span class="sw '+(l[0]==='line'?'line':l[0]==='dot'?'dot':'')+'" style="background:'+l[1]+'"></span>'+l[2]+'</div>').join('');body.innerHTML='<div class="kicker">'+CATS[cat].name+'</div><h2>'+LNAME(k)+'</h2><p class="dir">所属方向：'+inf.dir+'</p><p class="desc">'+inf.desc+'</p><div class="block"><h3>图例</h3><div class="legend">'+leg+'</div></div><div class="block"><h3>数据信息</h3><div class="meta"><div><b>数据来源：</b>'+inf.source+'</div><div><b>数据时间：</b>'+inf.time+'</div></div></div>';}
